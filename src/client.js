@@ -1,6 +1,6 @@
-import {EventEmitter} from "events"
+import {EventEmitter2} from "eventemitter2"
 
-class Client extends EventEmitter {
+class Client extends EventEmitter2 {
   constructor(
     url,
     reconnection,

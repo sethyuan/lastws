@@ -1,7 +1,43 @@
 import {server as WebSocketServer} from "websocket"
-import {EventEmitter} from "events"
+import {EventEmitter2} from "eventemitter2"
 
-class Server extends EventEmitter {
+class Connection extends EventEmitter2 {
+  constructor(socket) {
+    super()
+
+    this.socket = socket
+
+    socket.on("message", (msg) => {
+      const json = JSON.parse(msg.utf8Data)
+      super.emit(json.type, json.body)
+    })
+
+    socket.on("close", (reasonCode, description) => {
+      super.emit("close", reasonCode, description)
+    })
+
+    socket.on("error", (err) => {
+      super.emit("error", err)
+    })
+  }
+
+  send(type, body) {
+    this.socket.sendUTF(JSON.stringify({
+      type,
+      body
+    }))
+  }
+
+  close(...args) {
+    this.socket.close(...args)
+  }
+
+  drop(...args) {
+    this.socket.drop(...args)
+  }
+}
+
+class Server extends EventEmitter2 {
   constructor(httpServer) {
     super()
 
@@ -36,42 +72,6 @@ class Server extends EventEmitter {
 
   broadcast(type, body) {
     this.sockets.values().forEach((conn) => conn.send(type, body))
-  }
-}
-
-class Connection extends EventEmitter {
-  constructor(socket) {
-    super()
-
-    this.socket = socket
-
-    socket.on("message", (msg) => {
-      const json = JSON.parse(msg.utf8Data)
-      super.emit(json.type, json.body)
-    })
-
-    socket.on("close", (reasonCode, description) => {
-      super.emit("close", reasonCode, description)
-    })
-
-    socket.on("error", (err) => {
-      super.emit("error", err)
-    })
-  }
-
-  send(type, body) {
-    this.socket.sendUTF(JSON.stringify({
-      type,
-      body
-    }))
-  }
-
-  close(...args) {
-    this.socket.close(...args)
-  }
-
-  drop(...args) {
-    this.socket.drop(...args)
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "lastws",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A solid WebSocket wrapper",
   "main": "server.js",
   "scripts": {
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/sethyuan/lastws#readme",
   "dependencies": {
+    "eventemitter2": "^2.1.0",
     "websocket": "^1.0.23"
   },
   "devDependencies": {
