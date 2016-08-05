@@ -9,9 +9,9 @@ class Server extends EventEmitter {
       httpServer,
       autoAcceptConnections: true,
     })
-    const sockets = new Map()
-
     this.server = server
+    const sockets = new Map()
+    this.sockets = sockets
 
     server.on("connect", (socket) => {
       const connection = new Connection(socket)
@@ -32,6 +32,10 @@ class Server extends EventEmitter {
 
   shutdown() {
     this.server.shutdown()
+  }
+
+  broadcast(type, body) {
+    this.sockets.values().forEach((conn) => conn.send(type, body))
   }
 }
 
@@ -55,7 +59,7 @@ class Connection extends EventEmitter {
     })
   }
 
-  emit(type, body) {
+  send(type, body) {
     this.socket.sendUTF(JSON.stringify({
       type,
       body
