@@ -36,11 +36,5 @@
     "eslint-plugin-babel": "^3.3.0",
     "eslint_d": "^4.0.0",
     "source-map-support": "^0.4.2"
-  },
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-1"
-    ]
   }
 }
