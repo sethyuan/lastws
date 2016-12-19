@@ -1,4 +1,4 @@
-import {server as WebSocketServer} from "websocket"
+import {Server as WebSocketServer} from "uws"
 import {EventEmitter2} from "eventemitter2"
 
 class Connection extends EventEmitter2 {
@@ -8,7 +8,7 @@ class Connection extends EventEmitter2 {
     this.socket = socket
 
     socket.on("message", (msg) => {
-      const json = JSON.parse(msg.utf8Data)
+      const json = JSON.parse(msg)
       super.emit(json.type, json.body)
     })
 
@@ -22,18 +22,14 @@ class Connection extends EventEmitter2 {
   }
 
   send(type, body) {
-    this.socket.sendUTF(JSON.stringify({
+    this.socket.send(JSON.stringify({
       type,
       body
-    }))
+    }), {binary: false})
   }
 
-  close(...args) {
-    this.socket.close(...args)
-  }
-
-  drop(...args) {
-    this.socket.drop(...args)
+  terminate() {
+    this.socket.close()
   }
 }
 
@@ -41,33 +37,25 @@ class Server extends EventEmitter2 {
   constructor(httpServer) {
     super()
 
-    const server = new WebSocketServer({
-      httpServer,
-      autoAcceptConnections: true,
+    const wss = new WebSocketServer({
+      server: httpServer,
     })
-    this.server = server
+    this.server = wss
     const sockets = new Map()
     this.sockets = sockets
 
-    server.on("connect", (socket) => {
+    wss.on("connection", (socket) => {
       const connection = new Connection(socket)
       sockets.set(socket, connection)
-      super.emit("connect", connection)
-    })
-
-    server.on("close", (socket, reasonCode, description) => {
-      const connection = sockets.get(socket)
-      sockets.delete(socket)
-      super.emit("close", connection, reasonCode, description)
+      connection.on("close", () => {
+        sockets.delete(socket)
+      })
+      super.emit("connection", connection)
     })
   }
 
-  closeAllConnections() {
-    this.server.closeAllConnections()
-  }
-
-  shutdown() {
-    this.server.shutdown()
+  close(callback) {
+    this.server.close(callback)
   }
 
   broadcast(type, body) {

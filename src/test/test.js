@@ -12,22 +12,14 @@ function httpHandler(req, res) {
 
 server.listen(8001)
 
-let s
-
-ws.on("connect", (socket) => {
+ws.on("connection", (socket) => {
   console.log("new connection")
-  s = socket
 
   socket.on("speak", (content) => {
     console.log(content)
   })
 
   socket.send("hello", {name: "Seth"})
-})
-
-ws.on("close", (socket, reason, description) => {
-  console.log(socket === s)
-  console.log("a connection is closed because of "  + reason)
 })
 
 const client = new w3("ws://localhost:8001")
